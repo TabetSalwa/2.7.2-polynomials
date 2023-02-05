@@ -22,7 +22,7 @@ Fixpoint is_valid_i (p':poly) (j:nat) : Prop :=
 match p' with
 | Cst z => True
 | Poly p i q =>
-  Bool.Is_true (Nat.leb j i) /\ Bool.Is_true (negb (is_null q)) /\ is_valid_i p (S i) /\ is_valid_i q i
+  (Nat.leb j i) = true /\ (negb (is_null q)) = true /\ is_valid_i p (S i) /\ is_valid_i q i
 end.
 
 Definition is_valid (p:poly) : Prop :=
@@ -50,23 +50,69 @@ Eval compute in valid_bool (Poly (Cst 1) 1 (Poly (Cst 0) 2 (Cst 2))).
 Eval compute in valid_bool (Poly (Cst 1) 1 (Poly (Cst 2) 2 (Cst 0))).
 Eval compute in valid_bool (Poly (Cst 1) 2 (Poly (Cst 0) 1 (Cst 2))).
 
+Lemma bool_equiv_ind_i (p : poly) (i : nat) :
+  (valid_bool_i p i) = true <-> is_valid_i p i.
+Proof.
+  split.
+  revert i.
+  induction p.
+  simpl.
+  intro.
+  trivial.
 
-(*Lemma bool_equiv_ind (p:poly) : 
-  Bool.Is_true (valid_bool p) <-> is_valid p.
-split.
-unfold valid_bool.
-induction p.
-simpl.
-intro.
-unfold is_valid.
-simpl.
-trivial.
+  simpl valid_bool_i.
+  intro.
+  intro.
+  apply Bool.andb_true_iff in H.
+  destruct H.
+  apply Bool.andb_true_iff in H0.
+  destruct H0.
+  apply Bool.andb_true_iff in H1.
+  destruct H1.
+  simpl is_valid_i.
+  split.
+  assumption.
+  split.
+  assumption.
+  split.
+  apply IHp1 with (i := S n).
+  assumption.
+  apply IHp2 with (i := n).
+  assumption.
+
+  revert i.
+  induction p.
+  simpl.
+  intros.
+  trivial.
+
+  intro.
+  intro.
+  simpl is_valid_i in H.
+  destruct H.
+  destruct H0.
+  destruct H1.
+  simpl valid_bool_i.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  apply Bool.andb_true_iff.
+  split.
+  apply IHp1 with (i := S n).
+  assumption.
+  apply IHp2 with (i := n).
+  assumption.
+Qed.
 
 
-unfold valid_bool_i.
-simpl in IHp1.
-
-*)
+Lemma bool_equiv_ind (p:poly) : 
+  (valid_bool p) = true <-> is_valid p.
+Proof.
+  apply bool_equiv_ind_i with (i := 0).
+Qed.
 
 Record valid_poly : Type :=
 { VP_value : poly ;
@@ -386,9 +432,15 @@ Proof.
   assumption.
 Qed.
 
-Lemma split_coeff :
-  forall (p q : poly) (i : nat),
-  
+Lemma  coeff_poly :
+  forall (p1 p2 q1 q2 : poly) (i : nat) (m : mono),
+  valid_bool (Poly p1 i p2) = true ->
+  valid_bool (Poly q1 i q2) = true ->
+  (get_coeff_base (Poly p1 i p2) m) = (get_coeff_base (Poly q1 i q2) m) <->
+  (get_coeff_base p1 m = get_coeff_base q1 m /\ get_coeff_base p2 m = get_coeff_base q2 m).
+Proof.
+Admitted.
+
 
 Lemma eq_coeff (p q:valid_poly) :
   (forall (m:mono), get_coeff p m = get_coeff q m) -> p = q.
@@ -401,7 +453,7 @@ Proof.
   unfold get_coeff in H.
   unfold VP_value in H.
 
-  revert H p' q'.
+  revert q H p' q'.
   induction p.
 
   induction q.
@@ -440,4 +492,4 @@ Proof.
   apply Bool.andb_true_iff in H4.
   destruct H4.
   apply f_equal3 with (f := Poly).
-  
+
