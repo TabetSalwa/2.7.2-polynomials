@@ -10,6 +10,50 @@ Proof.
   assumption.
 Qed.
 
+Lemma eqb_symm :
+  forall (m n : nat),
+  (n =? m) = (m =? n).
+Proof.
+  intro m.
+  induction m.
+  induction n.
+  simpl.
+  reflexivity.
+  reflexivity.
+  induction n.
+  reflexivity.
+  apply IHm with (n := n).
+Qed.
+
+Lemma leb_refl :
+  forall (n : nat), (n <=? n) = true.
+Proof.
+  induction n.
+  reflexivity.
+  assumption.
+Qed.
+
+Lemma ltb_or_leb :
+  forall (m n : nat),
+  (n <? m) = true \/ (m <=? n) = true.
+Proof.
+  induction m.
+  induction n.
+  right.
+  reflexivity.
+  right.
+  reflexivity.
+  induction n.
+  left.
+  reflexivity.
+  destruct IHm with (n := n).
+  left.
+  assumption.
+  right.
+  assumption.
+Qed.
+
+
 Lemma leb_trans :
   forall (m n p: nat),
     (m <=? n) = true -> (n <=? p) = true -> (m <=? p) = true.
@@ -151,6 +195,8 @@ Proof.
   simpl in H.
   assumption.
 Qed.
+
+
 
 Lemma rec_init :
   forall (P : nat -> Prop),

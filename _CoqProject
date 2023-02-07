@@ -1,7 +1,8 @@
 -R . MyProofs
-Validity.v
 Nat_utils.v
+Validity.v
 Coeff_utils.v
 Coeff.v
+Values.v
 
 
