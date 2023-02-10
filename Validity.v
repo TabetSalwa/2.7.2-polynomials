@@ -19,6 +19,25 @@ match p with
 | _ => false
 end.
 
+Remark is_null_iff (p : poly) :
+  is_null p = true <-> p = Cst 0.
+Proof.
+  induction p.
+  induction z; unfold is_null; split; intro.
+  reflexivity.
+  reflexivity.
+  discriminate H.
+  injection H.
+  intro.
+  discriminate H0.
+  discriminate H.
+  injection H.
+  intro.
+  discriminate H0.
+  simpl is_null.
+  split; intro; discriminate H.
+Qed.
+
 Inductive is_valid_i : poly -> nat -> Prop :=
 | Is_valid_cst z i : is_valid_i (Cst z) i
 | Is_valid_poly p n q i : n >= i /\ q <> Cst 0 /\ is_valid_i p (S n) /\ is_valid_i q n -> is_valid_i (Poly p n q) i.
@@ -59,8 +78,7 @@ Proof.
   apply Is_valid_cst.
 
   simpl valid_bool_i.
-  intro.
-  intro.
+  intros i H.
   apply Bool.andb_true_iff in H.
   destruct H.
   apply Bool.andb_true_iff in H0.

@@ -195,40 +195,12 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma leb_refl :
-  forall (n : nat), (n <=? n) = true.
-Proof.
-  induction n.
-  reflexivity.
-  assumption.
-Qed.
-
-Lemma ltb_or_leb :
-  forall (m n : nat),
-  (n <? m) = true \/ (m <=? n) = true.
-Proof.
-  induction m.
-  induction n.
-  right.
-  reflexivity.
-  right.
-  reflexivity.
-  induction n.
-  left.
-  reflexivity.
-  destruct IHm with (n := n).
-  left.
-  assumption.
-  right.
-  assumption.
-Qed.
-
 Lemma valid_mono_mono (m : mono) (n : nat) :
   valid_mono_bool (Mono n m) = true <-> valid_mono_bool_i (Mono n m) n = true.
 Proof.
   split.
   intro.
-  simpl.
+  simpl.    
   apply Bool.andb_true_iff.
   split.
   apply leb_refl.

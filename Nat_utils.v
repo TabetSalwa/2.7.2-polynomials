@@ -196,8 +196,6 @@ Proof.
   assumption.
 Qed.
 
-
-
 Lemma rec_init :
   forall (P : nat -> Prop),
   (forall (n : nat), P n -> P (S n)) ->
@@ -225,4 +223,58 @@ Proof.
   simpl in H0.
   assumption.
   assumption.
+Qed.
+
+Lemma z_integrity (m n : Z) :
+  (Z.mul m n = Z.zero) <-> (m = Z.zero) \/ (n = Z.zero).
+Proof.
+  split.
+  revert n.
+  induction m.
+  intros.
+  left.
+  reflexivity.
+  intros.
+  right.
+  induction n.
+  reflexivity.
+  simpl Z.mul in H.
+  discriminate H.
+  simpl Z.mul in H.
+  discriminate H.
+
+  intros.
+  induction n.
+  right.
+  reflexivity.
+  simpl Z.mul in H.
+  discriminate H.
+  simpl Z.mul in H.
+  discriminate H.
+
+  intro.
+  destruct H.
+  rewrite H.
+  simpl Z.mul.
+  reflexivity.
+  rewrite H.
+  induction m.
+  reflexivity.
+  reflexivity.
+  reflexivity.
+Qed.
+
+Import Z.
+
+Lemma add_simpl (m n p : Z) :
+  Z.add m p = Z.add n p -> m = n.
+Proof.
+  intro.
+  rewrite <- add_0_r with (n := m).
+  rewrite <- add_0_r with (n := n).
+  rewrite <- add_opp_diag_r with (n := p).
+  rewrite add_assoc with (n := m) (m := p) (p := Z.opp p).
+  rewrite add_assoc with (n := n) (m := p) (p := Z.opp p).
+  rewrite H.
+  reflexivity.
 Qed.
