@@ -196,6 +196,65 @@ Proof.
   assumption.
 Qed.
 
+Lemma leb_max_l (m n : nat) :
+  m <=? Nat.max m n = true.
+Proof.
+  revert n.
+  induction m.
+  induction n.
+  reflexivity.
+  reflexivity.
+  induction n.
+  unfold Nat.max.
+  apply leb_refl.
+  apply IHm with (n := n).
+Qed.
+
+Lemma leb_max_r (m n : nat) :
+  n <=? Nat.max m n = true.
+Proof.
+  revert m.
+  induction n.
+  induction m.
+  reflexivity.
+  reflexivity.
+  induction m.
+  apply leb_refl.
+  apply IHn with (m := m).
+Qed.
+
+Lemma leb_plus_simpl (m n c : nat) :
+  (m <=? n) = true -> (m + c <=? n + c) = true.
+Proof.
+  induction c.
+  intro.
+  rewrite Nat.add_0_r.
+  rewrite Nat.add_0_r.
+  assumption.
+  rewrite Nat.add_comm with (m := S c) (n := m).
+  rewrite Nat.add_comm with (m := S c) (n := n).
+  intro.
+  simpl Nat.add.
+  simpl Nat.leb.
+  rewrite Nat.add_comm with (m := m) (n := c).
+  rewrite Nat.add_comm with (m := n) (n := c).
+  apply IHc.
+  assumption.
+Qed.
+
+Lemma leb_plus (m1 m2 n1 n2 : nat) :
+  (m1 <=? m2) = true -> (n1 <=? n2) = true -> m1 + n1 <=? m2 + n2 = true.
+Proof.
+  intros.
+  apply leb_trans with (n := m1 + n2).
+  rewrite Nat.add_comm with (m := n1) (n := m1).
+  rewrite Nat.add_comm with (m := n2) (n := m1).
+  apply leb_plus_simpl.
+  assumption.
+  apply leb_plus_simpl.
+  assumption.
+Qed.
+
 Lemma rec_init :
   forall (P : nat -> Prop),
   (forall (n : nat), P n -> P (S n)) ->

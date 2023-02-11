@@ -1,4 +1,4 @@
-Require Import Nat_utils.
+Require Import Nat_utils. 
 Require Import Validity.
 Require Import ZArith. 
 Require Import Coeff_utils.
@@ -149,7 +149,7 @@ Proof.
   assumption.
   intro.
   
-  apply IHp2 with (z := Z.zero).
+  (*apply IHp2 with (z := Z.zero).*)
 Admitted.
 
 Theorem eval_eq (p q : valid_poly) :
