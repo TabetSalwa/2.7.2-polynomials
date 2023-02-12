@@ -25,6 +25,29 @@ Proof.
   apply IHm with (n := n).
 Qed.
 
+Lemma eqb_true_iff (m n : nat) :
+  (m =? n) = true <-> m = n.
+Proof.
+  split.
+  revert n.
+  induction m.
+  induction n.
+  intro.
+  reflexivity.
+  intro.
+  discriminate H.
+  induction n.
+  intro.
+  discriminate H.
+  intro.
+  apply f_equal with (f := S).
+  apply IHm with (n := n).
+  assumption.
+  intro.
+  rewrite H.
+  apply eqb_refl.
+Qed.
+
 Lemma leb_refl :
   forall (n : nat), (n <=? n) = true.
 Proof.
@@ -53,6 +76,65 @@ Proof.
   assumption.
 Qed.
 
+Lemma ltb_compare_dec (m n : nat) :
+  (m <? n) = true \/ (n <? m) = true \/ m = n.
+Proof.
+  revert n.
+  induction m.
+  induction n.
+  right.
+  right.
+  reflexivity.
+  left.
+  reflexivity.
+  induction n.
+  right.
+  left.
+  reflexivity.
+  destruct IHm with (n := n).
+  left.
+  assumption.
+  destruct H.
+  right.
+  left.
+  assumption.
+  right.
+  right.
+  apply f_equal with (f := S).
+  assumption.
+Qed.
+
+Lemma nat_compare_ltb (m n : nat) :
+  (m <? n) = true <-> Nat.compare m n = Lt.
+Proof.
+  revert n.
+  induction m.
+  induction n.
+  split ; intro ; discriminate H.
+  split ; intro ; reflexivity.
+  induction n.
+  split ; intro ; discriminate H.
+  apply IHm.
+Qed.
+
+Lemma nat_compare_gtb (m n : nat) :
+  (n <? m) = true <-> Nat.compare m n = Gt.
+Proof.
+  revert n.
+  induction m.
+  induction n ; split ; intro ; discriminate H.
+  induction n.
+  split ; intro ; reflexivity.
+  apply IHm.
+Qed.
+
+Lemma nat_compare_eq (n : nat) :
+  Nat.compare n n = Eq.
+Proof.
+  induction n.
+  reflexivity.
+  apply IHn.
+Qed.
 
 Lemma leb_trans :
   forall (m n p: nat),
@@ -140,6 +222,33 @@ Proof.
   assumption.
 Qed.
 
+Lemma ltb_is_neqb2 :
+  forall (m n : nat),
+  (m <? n) = true ->
+  (n =? m) = false.
+Proof.
+  induction m.
+  induction n.
+  unfold Nat.ltb.
+  simpl.
+  intro.
+  discriminate H.
+  intro.
+  simpl.
+  reflexivity.
+
+  induction n.
+  intro.
+  simpl.
+  reflexivity.
+  unfold Nat.ltb.
+  simpl.
+  intro.
+  apply IHm with (n := n).
+  assumption.
+Qed.
+
+
 Lemma ltb_antisymm :
   forall (m n : nat),
   (m <? n) = true ->
@@ -170,11 +279,31 @@ Qed.
 
 Lemma ltb_leb :
   forall (m n : nat),
-  (n <? m) = false ->
+  (n <? m) = false <->
   (m <=? n) = true.
 Proof.
+  split.
   unfold Nat.ltb.
-  intros m n.
+  revert m.
+  induction n.
+  induction m.
+  intro.
+  simpl.
+  reflexivity.
+  simpl.
+  intro.
+  discriminate H.
+
+  induction m.
+  intro.
+  simpl.
+  reflexivity.
+  intro.
+  simpl.
+  apply IHn with (m := m).
+  simpl in H.
+  assumption.
+
   revert m.
   induction n.
   induction m.
@@ -195,6 +324,47 @@ Proof.
   simpl in H.
   assumption.
 Qed.
+
+
+Lemma leb_ltb :
+  forall (m n : nat),
+  (n <=? m) = false <->
+  (m <? n) = true.
+Proof.
+  split.
+  unfold Nat.ltb.
+  revert m.
+  induction n.
+  induction m.
+  discriminate.
+  discriminate.
+
+  induction m.
+  intro.
+  simpl.
+  reflexivity.
+  intro.
+  simpl.
+  apply IHn with (m := m).
+  simpl in H.
+  assumption.
+
+  revert m.
+  induction n.
+  induction m.
+  discriminate.
+  discriminate.
+  induction m.
+  intro.
+  simpl.
+  reflexivity.
+  intro.
+  simpl.
+  apply IHn with (m := m).
+  simpl in H.
+  assumption.
+Qed.
+
 
 Lemma leb_max_l (m n : nat) :
   m <=? Nat.max m n = true.
@@ -325,15 +495,25 @@ Qed.
 
 Import Z.
 
-Lemma add_simpl (m n p : Z) :
-  Z.add m p = Z.add n p -> m = n.
+Lemma excluded_middle_nat (m n : nat) :
+  m = n \/ m <> n.
 Proof.
-  intro.
-  rewrite <- add_0_r with (n := m).
-  rewrite <- add_0_r with (n := n).
-  rewrite <- add_opp_diag_r with (n := p).
-  rewrite add_assoc with (n := m) (m := p) (p := Z.opp p).
-  rewrite add_assoc with (n := n) (m := p) (p := Z.opp p).
-  rewrite H.
+  revert n.
+  induction m.
+  induction n.
+  left.
   reflexivity.
+  right.
+  discriminate.
+  induction n.
+  right.
+  discriminate.
+  destruct IHm with (n := n).
+  left.
+  apply f_equal with (f := S).
+  assumption.
+  right.
+  injection.
+  assumption.
 Qed.
+

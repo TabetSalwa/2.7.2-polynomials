@@ -10,8 +10,6 @@ Require Import Values.
 
 (* Question 1.3.a *)
 
-From Equations Require Import Equations.
-
 Fixpoint height (p : poly) : nat :=
 match p with
 | Cst z => 0
@@ -23,7 +21,7 @@ Lemma height_l (p q : poly) (i n : nat) :
 Proof.
   simpl height.
   simpl Nat.leb.
-  intro.  
+  intro.
   apply leb_trans with (n := Nat.max (height p) (height q)).
   apply leb_max_l.
   assumption.
@@ -287,6 +285,31 @@ Proof.
   assumption.
 Qed.
 
+Lemma almost_valid_leb (p : poly) (m n : nat) :
+  (m <=? n) = true -> almost_valid_i p n = true -> almost_valid_i p m = true.
+Proof.
+  revert m n.
+  induction p.
+  intros.
+  reflexivity.
+  intros.
+  simpl almost_valid_i in H0.
+  apply Bool.andb_true_iff in H0.
+  destruct H0.
+  apply Bool.andb_true_iff in H1.
+  destruct H1.
+  simpl almost_valid_i.
+  apply Bool.andb_true_iff.
+  split.  
+  apply leb_trans with (n := n0).
+  assumption.
+  assumption.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  assumption.
+Qed.
+
 Lemma sum_almost_valid (p q : poly) (n i : nat) :
   almost_valid_i p i = true -> almost_valid_i q i = true-> almost_valid_i (sum_poly_height p q n) i = true.
 Proof.
@@ -358,10 +381,92 @@ Proof.
   apply Bool.andb_true_iff in H4.
   destruct H4.
 
-  destruct Arith.Compare_dec.lt_eq_lt_dec with (n := n) (m := n0).
-  destruct s.
-  rewrite Arith.Compare_dec.nat_compare_lt with (n := n) (m := n0).
-Admitted.
+  destruct ltb_compare_dec with (n := n) (m := n0).
+  destruct nat_compare_gtb with (m := n) (n := n0).
+  rewrite H7.
+  simpl almost_valid_i.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  apply Bool.andb_true_iff.
+  split.
+  apply IHq1.
+  simpl almost_valid_i.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  assumption.
+  assumption.
+  assumption.
+  assumption.
+
+  destruct H6.
+  destruct nat_compare_ltb with (m := n) (n := n0).
+  rewrite H7.
+  simpl almost_valid_i.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  apply Bool.andb_true_iff.
+  split.
+  apply IHp1.
+  assumption.
+  simpl almost_valid_i.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  assumption.
+  assumption.
+  assumption.
+
+  rewrite H6.
+  rewrite Nat_utils.nat_compare_eq with (n := n).
+  simpl almost_valid_i.
+  apply Bool.andb_true_iff.
+  split.
+  assumption.
+  apply Bool.andb_true_iff.
+  split.
+  apply IHp1.
+  assumption.
+  rewrite <- H6.
+  assumption.
+  apply IHp2.
+  assumption.
+  rewrite <- H6.
+  assumption.
+Qed.
+
+Search Z.mul.
+
+Lemma validify_eval (p : poly) (f : nat -> Z) :
+  eval_base (validify p) f = eval_base p f.
+Proof.
+  induction p.
+  reflexivity.
+  destruct Bool.bool_dec with (b1 := is_null (validify p2)) (b2 := true).
+  simpl.
+  rewrite e.
+  rewrite <- IHp2.
+  apply is_null_iff in e.
+  rewrite e.
+  rewrite Z.mul_0_r.
+  rewrite Z.add_0_r.
+  apply IHp1.
+  apply Bool.not_true_iff_false in n0.
+  simpl.
+  rewrite n0.
+  simpl.
+  rewrite IHp1.
+  rewrite IHp2.
+  reflexivity.
+Qed.
 
 Lemma validify_validity (p : poly) (i : nat) :
   almost_valid_i p i = true -> valid_bool_i (validify p) i = true.
@@ -419,3 +524,153 @@ Qed.
 Definition sum_poly (p q : valid_poly) : valid_poly :=
   {| VP_value := sum_poly_base (VP_value p) (VP_value q) ;
      VP_prop := sum_valid (VP_value p) (VP_value q) (VP_prop p) (VP_prop q) |}.
+
+Lemma eval_sum (p q : valid_poly) (f : nat -> Z) :
+  eval (sum_poly p q) f = Z.add (eval p f) (eval q f).
+Proof.
+  destruct p as [p p'].
+  destruct q as [q q'].
+  unfold eval.
+  simpl VP_value.
+  unfold sum_poly_base.
+  rewrite validify_eval.
+  revert q q'.
+  induction p.
+  induction q.
+  intros.
+  reflexivity.
+  simpl.
+  intro.
+  rewrite height_invariance with (n := Nat.max (height q1) (height q2)).
+  rewrite IHq1.
+  symmetry.
+  apply Z.add_assoc.
+  unfold valid_bool in q'.
+  simpl valid_bool_i in q'.
+  apply Bool.andb_true_iff in q'.
+  destruct q'.
+  apply Bool.andb_true_iff in H0.
+  destruct H0.
+  apply valid_leb with (n := S n).
+  reflexivity.
+  assumption.
+  apply leb_max_l.
+
+  induction q.
+  simpl.
+  intro.
+  rewrite Nat.add_0_r with (n := Nat.max (height p1) (height p2)).
+  rewrite height_invariance with (n := Nat.max (height p1) (height p2)).
+  rewrite IHp1.
+  simpl.
+  rewrite <- Z.add_assoc with (n := eval_base p1 f) (m := z) (p := Z.mul (f n) (eval_base p2 f)).
+  rewrite <- Z.add_comm with (m := z) (n := Z.mul (f n) (eval_base p2 f)).
+  apply Z.add_assoc with (n := eval_base p1 f) (m := Z.mul (f n) (eval_base p2 f)) (p := z).
+  unfold valid_bool in p'.
+  simpl valid_bool_i in p'.
+  apply Bool.andb_true_iff in p'.
+  destruct p'.
+  apply Bool.andb_true_iff in H0.
+  destruct H0.
+  apply valid_leb with (n := S n).
+  reflexivity.
+  assumption.
+  assumption.
+  rewrite Nat.add_0_r.
+  apply leb_max_l.
+
+  intros.
+  destruct ltb_compare_dec with (m := n) (n := n0).
+  simpl eval_base.
+  destruct nat_compare_ltb with (m := n) (n := n0).
+  rewrite H0.
+  simpl.
+  rewrite height_invariance with (n := Nat.max (height p1) (height p2) + S (Nat.max (height q1) (height q2))).
+  rewrite IHp1.
+  simpl.
+  Lia.lia.
+  unfold valid_bool in p'.
+  simpl valid_bool_i in p'.
+  apply Bool.andb_true_iff in p'.
+  destruct p'.
+  apply Bool.andb_true_iff in H3.
+  destruct H3.
+  apply valid_leb with (n := S n).
+  reflexivity.
+  assumption.
+  assumption.
+  apply leb_plus_simpl.
+  apply leb_max_l.
+  assumption.
+
+  destruct H.
+  simpl eval_base.
+  destruct nat_compare_gtb with (m := n) (n := n0).
+  rewrite H0.
+  simpl.
+  rewrite height_invariance with (n := Nat.max (height p1) (height p2) + S (Nat.max (height q1) (height q2))).
+  rewrite IHq1.
+  simpl.
+  Lia.lia.
+  unfold valid_bool in q'.
+  simpl valid_bool_i in q'.
+  apply Bool.andb_true_iff in q'.
+  destruct q'.
+  apply Bool.andb_true_iff in H3.
+  destruct H3.
+  apply valid_leb with (n := S n0).
+  reflexivity.
+  assumption.
+  simpl height.
+  rewrite Nat.add_succ_r.
+  simpl.
+  apply leb_plus.
+  apply leb_refl.
+  apply leb_max_l.
+  assumption.
+
+  rewrite <- H.
+  simpl eval_base.
+  rewrite Nat_utils.nat_compare_eq with (n := n).
+  simpl.
+  unfold valid_bool in p'.
+  simpl valid_bool_i in p'.
+  apply Bool.andb_true_iff in p'.
+  destruct p'.
+  apply Bool.andb_true_iff in H1.
+  destruct H1.
+  unfold valid_bool in q'.
+  simpl valid_bool_i in q'.
+  apply Bool.andb_true_iff in q'.
+  destruct q'.
+  apply Bool.andb_true_iff in H4.
+  destruct H4.
+  rewrite height_invariance with (n := Nat.max (height p1) (height p2) + S (Nat.max (height q1) (height q2))).
+  rewrite height_invariance with (n := Nat.max (height p1) (height p2) + S (Nat.max (height q1) (height q2))).
+  rewrite IHp1.
+  rewrite IHp2.
+  Lia.lia.
+  apply valid_leb with (n := n).
+  reflexivity.
+  assumption.
+  apply valid_leb with (n := n0).
+  reflexivity.
+  assumption.
+  apply valid_leb with (n := S n).
+  reflexivity.
+  assumption.
+  apply valid_leb with (n := S n0).
+  reflexivity.
+  assumption.
+  apply leb_plus.
+  apply leb_max_r.
+  apply leb_trans with (n := Nat.max (height q1) (height q2)).
+  apply leb_max_r.
+  apply leb_succ.
+  apply leb_plus.
+  apply leb_max_l.
+  apply leb_trans with (n := Nat.max (height q1) (height q2)).
+  apply leb_max_l.
+  apply leb_succ.
+Qed.
+

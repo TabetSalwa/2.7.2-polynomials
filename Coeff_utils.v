@@ -1,6 +1,7 @@
 Require Import Validity.
 Require Import ZArith.
 Require Import Nat_utils.
+Require Import Z_utils.
 
 Lemma valid_succ :
   forall (p : poly) (i : nat),
@@ -77,6 +78,52 @@ Proof.
   apply valid_succ with (p := p) (i := n0).
   assumption.
   assumption.
+  assumption.
+Qed.
+
+Lemma excluded_middle_poly (p q : poly) :
+  p = q \/ p <> q.
+Proof.
+  revert q.
+  induction p.
+  induction q.
+  destruct excluded_middle_z with (z1 := z) (z2 := z0).
+  left.
+  apply f_equal with (f := Cst).
+  assumption.
+  right.
+  injection.
+  assumption.
+  right.
+  discriminate.
+  intro.
+  induction q.
+  right.
+  discriminate.
+  destruct IHp1 with (q := q1).
+  destruct excluded_middle_nat with (m := n) (n := n0).
+  destruct IHp2 with (q := q2).
+  left.
+  apply f_equal3 with (f := Poly).
+  assumption.
+  assumption.
+  assumption.
+  right.
+  injection.
+  intro.
+  exfalso.
+  apply H1.
+  assumption.
+  right.
+  injection.
+  intros H2 H3.
+  exfalso.
+  apply H0.
+  assumption.
+  right.
+  injection.
+  intros.
+  apply H.
   assumption.
 Qed.
 
