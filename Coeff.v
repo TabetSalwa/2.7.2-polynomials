@@ -27,18 +27,46 @@ Remark vm_value_simpl (m : mono) (p : valid_mono_bool m = true) :
 Proof.
   reflexivity.
 Qed.
-  
 
-Remark valid_mono_eq (P : mono -> Prop) :
-  (forall (m : valid_mono), P (VM_value m)) <->
-  (forall (m : mono), valid_mono_bool m = true -> P m).
+Lemma valid_mono_mono (m : mono) (n : nat) :
+  valid_mono_bool (Mono n m) = true <-> valid_mono_bool_i (Mono n m) n = true.
 Proof.
   split.
+  intro.
+  simpl.
+  apply Bool.andb_true_iff.
+  split.
+  apply leb_refl.
+  unfold valid_mono_bool in H.
+  simpl in H.
+  assumption.
+
+  intro.
+  simpl in H.
+  apply Bool.andb_true_iff in H.
+  destruct H.
+  unfold valid_mono_bool.
+  simpl.
+  assumption.
+Qed.
+
+Lemma valid_mono_leb (m : mono) (i j : nat) :
+  (i <=? j) = true -> valid_mono_bool_i m j = true -> valid_mono_bool_i m i = true.
+Proof. 
+  revert i j.
+  induction m.
   intros.
-  apply H with (m := {| VM_value := m; VM_prop := H0 |}).
+  reflexivity.
   intros.
-  destruct m as [m m'].
-  apply H with (m := m).
+  simpl.
+  apply Bool.andb_true_iff.
+  simpl in H0.
+  apply Bool.andb_true_iff in H0.
+  destruct H0.
+  split.
+  apply leb_trans with (n := j).
+  assumption.
+  assumption.
   assumption.
 Qed.
 
@@ -195,48 +223,6 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma valid_mono_mono (m : mono) (n : nat) :
-  valid_mono_bool (Mono n m) = true <-> valid_mono_bool_i (Mono n m) n = true.
-Proof.
-  split.
-  intro.
-  simpl.    
-  apply Bool.andb_true_iff.
-  split.
-  apply leb_refl.
-  unfold valid_mono_bool in H.
-  simpl in H.
-  assumption.
-
-  intro.
-  simpl in H.
-  apply Bool.andb_true_iff in H.
-  destruct H.
-  unfold valid_mono_bool.
-  simpl.
-  assumption.
-Qed.
-
-Lemma valid_mono_leb (m : mono) (i j : nat) :
-  (i <=? j) = true -> valid_mono_bool_i m j = true -> valid_mono_bool_i m i = true.
-Proof. 
-  revert i j.
-  induction m.
-  intros.
-  reflexivity.
-  intros.
-  simpl.
-  apply Bool.andb_true_iff.
-  simpl in H0.
-  apply Bool.andb_true_iff in H0.
-  destruct H0.
-  split.
-  apply leb_trans with (n := j).
-  assumption.
-  assumption.
-  assumption.
-Qed.
-
 Lemma  coeff_poly :
   forall (p1 p2 q1 q2 : poly) (i : nat),
   valid_bool (Poly p1 i p2) = true ->
@@ -261,7 +247,7 @@ Proof.
   rewrite null_coeff with (p := p1) (i := S i) (j := n) (m := m).
   rewrite null_coeff with (p := q1) (i := S i) (j := n) (m := m).
   reflexivity.
-  unfold valid_bool in H0.
+  unfold valid_bool in H0.	
   apply Bool.andb_true_iff in H0.
   destruct H0.
   apply Bool.andb_true_iff in H4.

@@ -54,26 +54,6 @@ Proof.
   assumption.
 Qed.
 
-Definition zeros : nat -> Z :=
-  fun n => Z.zero.
-
-Lemma eval_zero (p : poly) :
-  eval_base p zeros = get_coeff_base p One.
-Proof.
-  induction p.
-  unfold get_coeff_base.
-  unfold eval_base.
-  reflexivity.
-
-  simpl eval_base.
-  simpl get_coeff_base.
-  Lia.lia.
-Qed.
-
-Locate "&&".
-Open Scope bool_scope.
-Check (true && false) % bool.
-
 Lemma non_constant_poly (p : poly) (i : nat) (z : Z) :
   valid_bool_i p i = true ->
   p <> Cst z ->
@@ -84,7 +64,7 @@ Proof.
   revert i z.
   induction p.
   intros.
-  exists zeros.
+  exists (fun _ => Z.zero).
   exists Z.zero.
   intros.
   intro.
@@ -202,9 +182,10 @@ Proof.
   assumption.
 Qed.
 
-
 Lemma diff_poly (p q : poly) (i : nat) :
-  valid_bool_i p i = true -> valid_bool_i q i = true -> p <> q ->
+  valid_bool_i p i = true ->
+  valid_bool_i q i = true ->
+  p <> q ->
   exists (f : nat -> Z) (n0 : Z), forall (n : Z), (n0 <= n)%Z ->
   eval_base p (fun (j : nat) => if j =? i then n else f j) <> eval_base q (fun (j : nat) => if j =? i then n else f j).
 Proof.
@@ -212,7 +193,7 @@ Proof.
   induction p.
   induction q.
   intros.
-  exists zeros.
+  exists (fun _ => Z.zero).
   exists 0%Z.
   intros.
   intro.

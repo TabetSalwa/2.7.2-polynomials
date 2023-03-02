@@ -27,74 +27,6 @@ Proof.
   assumption.
 Qed.
 
-Let height_cst_poly (z : Z) (p q : poly) (i n : nat) :
-  height (Cst z) + height (Poly p i q) <=? S n = true -> height (Cst z) + height p <=? n = true.
-  intro.
-  apply leb_trans with (n := Nat.max (height p) (height q)).
-  apply leb_max_l.
-  assumption.
-Qed.
-
-
-Let height_poly_cst (p q : poly) (i n : nat) (z : Z) :
-  height (Poly p i q) + height (Cst z) <=? S n = true -> height p + height (Cst z) <=? n = true.
-  rewrite Nat.add_0_r.
-  rewrite Nat.add_0_r.
-  intro.
-  apply leb_trans with (n := Nat.max (height p) (height q)).
-  apply leb_max_l.
-  assumption.
-Qed.
-
-Let height_poly_poly_eq (p1 p2 q1 q2 : poly) (i j n : nat) :
-  height (Poly p1 i p2) + height (Poly q1 j q2) <=? S n = true ->
-  height p1 + height q1 <=? n = true /\ height p2 + height q2 <=? n = true.
-  intro.
-  split.
-  apply leb_trans with (n := height p1 + height (Poly q1 j q2)).
-  apply leb_plus.
-  apply leb_refl with (n := height p1).
-  apply leb_trans with (n := Nat.max (height q1) (height q2)).
-  apply leb_max_l.
-  apply leb_succ.
-  apply leb_trans with (m := S (height p1) + height (Poly q1 j q2)) (n := height (Poly p1 i p2) + height (Poly q1 j q2)) (p := S n).
-  apply leb_plus_simpl with (c := height (Poly q1 j q2)).
-  apply leb_max_l.
-  assumption.
-  apply leb_trans with (n := height p2 + height (Poly q1 j q2)).
-  apply leb_plus.
-  apply leb_refl with (n := height p2).
-  apply leb_trans with (n := Nat.max (height q1) (height q2)).
-  apply leb_max_r.
-  apply leb_succ.
-  apply leb_trans with (m := S (height p2) + height (Poly q1 j q2)) (n := height (Poly p1 i p2) + height (Poly q1 j q2)) (p := S n).
-  apply leb_plus_simpl with (c := height (Poly q1 j q2)).
-  apply leb_max_r.
-  assumption.
-Qed.
-
-Let height_poly_poly_lt (p1 p2 q1 q2 : poly) (i j n : nat) :
-  height (Poly p1 i p2) + height (Poly q1 j q2) <=? S n = true ->
-  height p1 + height (Poly q1 j q2) <=? n = true.
-  intro.
-  apply leb_trans with (m := S (height p1) + height (Poly q1 j q2)) (n := height (Poly p1 i p2) + height (Poly q1 j q2)) (p := S n).
-  apply leb_plus_simpl with (c := height (Poly q1 j q2)).
-  apply leb_max_l.
-  assumption.
-Qed.
-
-Let height_poly_poly_gt (p1 p2 q1 q2 : poly) (i j n : nat) :
-  height (Poly p1 i p2) + height (Poly q1 j q2) <=? S n = true ->
-  height (Poly p1 i p2) + height q1 <=? n = true.
-  intro.
-  apply leb_trans with (m := S (height (Poly p1 i p2) + height q1)) (n := height (Poly p1 i p2) + height (Poly q1 j q2)) (p := S n).
-  rewrite Nat.add_comm with (m := height q1) (n := height (Poly p1 i p2)).
-  rewrite Nat.add_comm with (m := height (Poly q1 j q2)) (n := height (Poly p1 i p2)).
-  apply leb_plus_simpl with (c := height (Poly p1 i p2)).
-  apply leb_max_l.
-  assumption.
-Qed.
-
 (*Fixpoint sum_poly (p q : poly) (n : nat) (H : (height p + height q <=? n) = true) {struct n} : poly :=
   match p,q,n with
   |Cst z1, Cst z2, _ => Cst (z1 + z2)
@@ -208,7 +140,15 @@ Proof.
   apply leb_trans with (n := Nat.max (height q1) (height q2)).
   apply leb_max_l.
   apply leb_succ.
-  apply height_poly_poly_eq with (p1 := p1) (p2 := p2) (q1 := q1) (q2 := q2) (i := n) (j := n0) (n := n1).
+  apply leb_trans with (n := height p1 + height (Poly q1 n0 q2)).
+  apply leb_plus.
+  apply leb_refl with (n := height p1).
+  apply leb_trans with (n := Nat.max (height q1) (height q2)).
+  apply leb_max_l.
+  apply leb_succ.
+  apply leb_trans with (m := S (height p1) + height (Poly q1 n0 q2)) (n := height (Poly p1 n p2) + height (Poly q1 n0 q2)) (p := S n1).
+  apply leb_plus_simpl with (c := height (Poly q1 n0 q2)).
+  apply leb_max_l.
   assumption.
   rewrite IHp2 with (n := n1).
   rewrite IHp2 with (n := Nat.max (height p1) (height p2) + S (Nat.max (height q1) (height q2))).
@@ -218,7 +158,15 @@ Proof.
   apply leb_trans with (n := Nat.max (height q1) (height q2)).
   apply leb_max_r.
   apply leb_succ.
-  apply height_poly_poly_eq with (p1 := p1) (p2 := p2) (q1 := q1) (q2 := q2) (i := n) (j := n0) (n := n1).
+  apply leb_trans with (n := height p2 + height (Poly q1 n0 q2)).
+  apply leb_plus.
+  apply leb_refl with (n := height p2).
+  apply leb_trans with (n := Nat.max (height q1) (height q2)).
+  apply leb_max_r.
+  apply leb_succ.
+  apply leb_trans with (m := S (height p2) + height (Poly q1 n0 q2)) (n := height (Poly p1 n p2) + height (Poly q1 n0 q2)) (p := S n1).
+  apply leb_plus_simpl with (c := height (Poly q1 n0 q2)).
+  apply leb_max_r.
   assumption.
 
   apply f_equal with (f := fun p => Poly p n p2).
@@ -442,8 +390,6 @@ Proof.
   rewrite <- H6.
   assumption.
 Qed.
-
-Search Z.mul.
 
 Lemma validify_eval (p : poly) (f : nat -> Z) :
   eval_base (validify p) f = eval_base p f.

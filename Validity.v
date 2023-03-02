@@ -45,10 +45,10 @@ Inductive is_valid_i : poly -> nat -> Prop :=
 Definition is_valid (p:poly) : Prop :=
   is_valid_i p 0.
 
-Eval compute in is_valid (Cst 3).
+(*Eval compute in is_valid (Cst 3).
 Eval compute in is_valid (Poly (Cst 1) 1 (Poly (Cst 0) 2 (Cst 2))).
 Eval compute in is_valid (Poly (Cst 1) 1 (Poly (Cst 2) 2 (Cst 0))).
-Eval compute in is_valid (Poly (Cst 1) 2 (Poly (Cst 0) 1 (Cst 2))).
+Eval compute in is_valid (Poly (Cst 1) 2 (Poly (Cst 0) 1 (Cst 2))).*)
 
 
 (* Question B *)
@@ -62,10 +62,10 @@ end.
 Definition valid_bool (p:poly) : bool :=
   valid_bool_i p 0.
 
-Eval compute in valid_bool (Cst 3).
+(*Eval compute in valid_bool (Cst 3).
 Eval compute in valid_bool (Poly (Cst 1) 1 (Poly (Cst 0) 2 (Cst 2))).
 Eval compute in valid_bool (Poly (Cst 1) 1 (Poly (Cst 2) 2 (Cst 0))).
-Eval compute in valid_bool (Poly (Cst 1) 2 (Poly (Cst 0) 1 (Cst 2))).
+Eval compute in valid_bool (Poly (Cst 1) 2 (Poly (Cst 0) 1 (Cst 2))).*)
 
 Lemma bool_equiv_ind_i (p : poly) (i : nat) :
   (valid_bool_i p i) = true <-> is_valid_i p i.
@@ -165,12 +165,10 @@ Proof.
   left.
   reflexivity.
   right.
-  intro.
-  discriminate H.
+  discriminate.
   case b'.
   right.
-  intro.
-  discriminate H.
+  discriminate.
   left.
   reflexivity.
 Qed.
@@ -190,14 +188,15 @@ match bool_dec true true with
   | or_intror neq => False_ind _ (neq u)
 end.
 
-Definition nu_constant (u v : true = true) : nu u = nu v.
+Lemma nu_constant (u v : true = true) : nu u = nu v.
+Proof.
   unfold nu.
   destruct (bool_dec true true) as [Heq|Hneq].
   reflexivity.
   case Hneq.
 Qed.
 
-Definition nu_inv (u : true = true) := comp true true true (nu (eq_refl true)) u.
+Definition nu_inv (u : true = true) : true = true := comp true true true (nu (eq_refl true)) u.
 
 Lemma nu_injective (u : true = true) : u = nu_inv (nu u).
 Proof.
@@ -232,6 +231,5 @@ Proof.
   rewrite <- H.
   intros p2 q2.
   apply f_equal with (f := fun x => {| VP_value := p1; VP_prop := x |}).
-  rewrite (proof_irrelevance (valid_bool p1) p2 q2).
-  reflexivity.
+  apply (proof_irrelevance (valid_bool p1) p2 q2).
 Qed.
